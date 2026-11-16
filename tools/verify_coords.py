@@ -143,6 +143,38 @@ def main():
         with open(OUT, "w", encoding="utf-8") as f:
             json.dump(res, f, ensure_ascii=False, indent=1)
     print("done ->", OUT, file=sys.stderr)
+    compact(res)
+
+def compact(res):
+    """전송용 요약: 한 줄에 좌표 하나, 줄 끝에 무결성 확인용 해시 6자리."""
+    import hashlib
+    lines = []
+    for bid, e in res.items():
+        for s, rows in e["nominatim"].items():
+            if isinstance(rows, dict): lines.append(f"{bid}|N|{s}|ERR"); continue
+            if not rows: lines.append(f"{bid}|N|{s}|NONE")
+            for x in rows[:3]:
+                bb = x.get("bbox") or [0, 0, 0, 0]
+                h = round((bb[1] - bb[0]) * 111000); w = round((bb[3] - bb[2]) * 91000)
+                lines.append(f'{bid}|N|{s}|{x["lat"]},{x["lng"]}|{x["osm"]}|{x["cls"]}|{x["name"]}|{w}x{h}m|{x["disp"][:60]}')
+        for lang in ("jawiki",):
+            for t, pages in e[lang].items():
+                if not isinstance(pages, list): continue
+                for p in pages:
+                    for c in p["coords"]:
+                        lines.append(f'{bid}|W|{p["title"]}|{c["lat"]},{c["lng"]}|{p.get("qid")}|{"primary" if c["primary"] else c.get("name")}')
+        for d in e["wikidata"]:
+            for c in d["coords"]:
+                lines.append(f'{bid}|D|{d["label"]}|{c["lat"]},{c["lng"]}|{d["qid"]}|{(d["desc"] or "")[:40]}')
+        for s, rows in e["gsi"].items():
+            if isinstance(rows, list):
+                for x in rows[:2]: lines.append(f'{bid}|G|{s}|{x["lat"]},{x["lng"]}|{x["title"]}')
+    out = OUT.replace(".json", "_compact.txt")
+    with open(out, "w", encoding="utf-8") as f:
+        for l in lines:
+            l = l.replace("\n", " ")
+            f.write(l + "|#" + hashlib.sha1(l.encode()).hexdigest()[:6] + "\n")
+    print("compact ->", out, len(lines), "lines", file=sys.stderr)
 
 if __name__ == "__main__":
     main()
