@@ -139,6 +139,7 @@ body.view-map .tabs { padding-top: calc(8px + env(safe-area-inset-top)); }
 .dist { background: var(--ink); color: var(--bg); }
 .flag.done { background: var(--done-soft); color: var(--done); }
 .flag.fav { background: var(--fav-soft); color: var(--fav); }
+.flag.warn { background: #7a1f12; color: #fff; }
 .card:not(.is-done) .flag.done, .card:not(.is-fav) .flag.fav,
 .sheet:not(.is-done) .flag.done, .sheet:not(.is-fav) .flag.fav { display: none; }
 

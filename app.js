@@ -101,6 +101,8 @@
       '<span class="dist" data-dist hidden></span>' +
       '<span class="flag done">방문 완료</span>' +
       '<span class="flag fav">즐겨찾기</span>' +
+      (PLACES[b.id].grade === "X" ? '<span class="flag warn">핀 위치 미확인</span>' : "") +
+      (PLACES[b.id].grade === "C" ? '<span class="flag warn">핀 위치 대략</span>' : "") +
       "</div>";
   }
   function headHTML(b) {
