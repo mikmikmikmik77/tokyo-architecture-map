@@ -1,0 +1,38 @@
+b01 | OK | File:National museum of western art05s3200.jpg | CC BY-SA 4.0 | search
+b02 | OK | File:Tokyo Bunka Kaikan 2023 Nov 23 12-27PM.jpeg | CC BY 4.0 | search
+b03 | OK | File:Daiwa Ubiquitous Computing Research Building @ University of Tokyo (15055524610).jpg | CC BY 2.0 | search
+b04 | OK | File:International Library of Children's Literature 20211126.jpg | CC0 | search
+b05 | OK | File:Asakusa Culture Tourist Information Center 21 09 2024 Picture 03.jpg | CC BY 4.0 | search
+b06 | OK | File:2018 Sumida Hokusai Museum 2.jpg | CC BY-SA 4.0 | search
+b07 | OK | File:Asahi Beer Hall & Tokyo Skytree.jpg | CC BY-SA 4.0 | search
+b08 | OK | File:Tokyo-International-Forum Glass-Building Outside.jpg | CC BY-SA 4.0 | search
+b09 | OK | File:JP Tower.jpg | CC BY-SA 4.0 | search
+b10 | OK | File:Mitsubishi Ichigokan Museum (2023).jpg | CC BY-SA 4.0 | search
+b11 | OK | File:Tokyo Station (Marunouchi Building).jpg | CC BY-SA 4.0 | search
+b12 | OK | File:Hermes, Ginza, Tokyo - DSC09661.JPG | CC0 | search
+b13 | OK | File:Mikimoto Ginza2.JPG | CC BY-SA 3.0 | search
+b14 | OK | File:GINZA SIX Exterior view 2018.jpg | CC BY-SA 4.0 | search
+b15 | OK | File:Tokyu Plaza Ginza 20241021.jpg | CC BY 4.0 | search
+b16 | NONE | only candidates were interiors/rooftop close-ups or undownloadable; building not recognisable from street
+b17 | OK | File:Azabudai Hills Garden Plaza A and B 20241021.jpg | CC BY 4.0 | search
+b18 | OK | File:21 21 DESIGN SIGHT 2018-1.jpg | CC BY-SA 4.0 | search
+b19 | OK | File:National Art Center Tokyo 2008.jpg | CC BY-SA 3.0 | search
+b20 | OK | File:Tokyo-Midtown-Suntory-Museum-of-Art-01.jpg | CC BY-SA 3.0 | search
+b21 | OK | File:Nezu museum entrance tokyo 2014.jpg | CC BY-SA 3.0 | search
+b22 | OK | File:PRADA BOUTIQUE AOYAMA.jpg | CC BY-SA 3.0 | search
+b23 | OK | File:SunnyHills Tokyo (13972861577).jpg | CC BY-SA 2.0 | search
+b24 | OK | File:Omotesando buildings.jpg | CC BY-SA 3.0 | search
+b25 | OK | File:Omotesando Hills 2012.JPG | CC BY-SA 3.0 | search
+b26 | OK | File:Spiral Building.jpg | CC BY-SA 3.0 | search
+b27 | NONE | no Commons photo found (searches for The Jewels of Aoyama returned nothing relevant)
+b28 | OK | File:TOKYU PLAZA Omotesando Harajuku 4.jpg | CC BY-SA 4.0 | search
+b29 | OK | File:Tokyo Toilet Project 02.jpg | CC BY-SA 4.0 | search
+b30 | OK | File:Shibuya Scramble Square building.jpg | CC0 | search
+b31 | OK | File:Miyashita Park 200802j.jpg | CC BY-SA 4.0 | search
+b32 | OK | File:Yoyogi National Gymnasium 20200607.jpg | CC BY-SA 4.0 | search
+b33 | OK | File:Mode Gakuen Cocoon Tower 2018.jpg | CC BY-SA 4.0 | search
+b34 | OK | File:TokyoMetropolitanGovernmentOffice.jpg | CC BY-SA 3.0 | search
+b35 | OK | File:Hillside Terrace, Building C 20241020.jpg | CC BY 4.0 | search
+b36 | OK | File:Daikanyama T-SITE 2016-04-04.jpg | CC BY-SA 2.0 | search
+b37 | OK | File:20190322 Odaiba Fuji Television Network building.jpg | CC0 | search
+b38 | OK | File:Teamlab toyosu.jpg | CC0 | search
