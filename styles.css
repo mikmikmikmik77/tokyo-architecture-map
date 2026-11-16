@@ -126,7 +126,7 @@ body.view-map .tabs { padding-top: calc(8px + env(safe-area-inset-top)); }
   padding: 16px;
   margin-bottom: 12px;
   content-visibility: auto;
-  contain-intrinsic-size: auto 420px;
+  contain-intrinsic-size: auto 680px;
 }
 .card.is-done { border-color: var(--done); }
 .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px; }
@@ -147,6 +147,18 @@ body.view-map .tabs { padding-top: calc(8px + env(safe-area-inset-top)); }
 .sub { font-size: .85rem; color: var(--ink-3); margin-top: 2px; }
 .architect { font-size: .95rem; font-weight: 700; color: var(--ink-2); margin: 8px 0 10px; }
 .architect b { font-weight: 600; color: var(--ink-3); margin-right: 6px; font-size: .85rem; }
+
+.photo { margin: 0 0 12px; }
+.photo img {
+  display: block; width: 100%; height: auto;
+  max-height: 260px; object-fit: cover;
+  border-radius: 10px; background: var(--bg);
+}
+.photo.tall img { height: 300px; max-height: none; object-fit: contain; }
+.sheet .photo img { max-height: 180px; }
+.sheet .photo.tall img { height: 220px; }
+.photo figcaption { font-size: .72rem; color: var(--ink-3); margin-top: 4px; overflow-wrap: anywhere; }
+.photo figcaption a { color: var(--ink-3); }
 
 .points { list-style: none; margin-bottom: 12px; }
 .points li { position: relative; padding-left: 14px; font-size: .97rem; color: var(--ink-2); margin-bottom: 4px; }
