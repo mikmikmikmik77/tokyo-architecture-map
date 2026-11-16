@@ -1,6 +1,6 @@
 // 서비스 워커: 앱 화면(목록·데이터)을 폰에 저장해 두어 오프라인에서도 열리게 합니다.
 // 파일을 고쳐서 다시 올릴 때는 아래 버전 숫자를 하나 올려 주세요.
-const VERSION = "v1";
+const VERSION = "v2";
 const CACHE = "tokyo-arch-" + VERSION;
 const SHELL = [
   "./",
@@ -9,6 +9,7 @@ const SHELL = [
   "config.js",
   "data.js",
   "places.js",
+  "photos.js",
   "app.js",
   "manifest.webmanifest",
   "icons/icon-192.png",
@@ -16,10 +17,17 @@ const SHELL = [
   "icons/icon-maskable-512.png"
 ];
 
+// 건물 사진 목록(photos.js)을 읽어 와서 사진도 함께 저장합니다.
+self.window = self;
+try { importScripts("photos.js"); } catch (e) { self.PHOTOS = {}; }
+const PHOTO_FILES = Object.values(self.PHOTOS || {}).map((p) => p.file);
+
 self.addEventListener("install", (e) => {
   e.waitUntil(
     caches.open(CACHE)
-      .then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: "reload" }))))
+      .then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: "reload" })))
+        // 사진은 하나쯤 실패해도 앱 설치가 막히지 않게 따로 받습니다.
+        .then(() => Promise.all(PHOTO_FILES.map((u) => c.add(u).catch(() => {})))))
       .then(() => self.skipWaiting())
   );
 });

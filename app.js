@@ -9,6 +9,7 @@
   const CONFIG = window.APP_CONFIG || {};
   const DATA = window.TOUR_DATA;
   const PLACES = window.PLACES || {};
+  const PHOTOS = window.PHOTOS || {};
   const REGIONS = DATA.regions;
   const BUILDINGS = DATA.buildings.filter((b) => PLACES[b.id]);
   const BY_ID = new Map(BUILDINGS.map((b) => [b.id, b]));
@@ -110,6 +111,17 @@
       '<p class="sub">' + esc(b.nameJa) + " | " + esc(b.nameEn) + "</p>" +
       '<p class="architect"><b>건축가</b>' + esc(b.architect) + "</p>";
   }
+  // 대표 사진(위키미디어 공용). 없는 건물은 아무것도 그리지 않습니다.
+  function photoHTML(b) {
+    const ph = PHOTOS[b.id];
+    if (!ph) return "";
+    const tall = ph.h > ph.w;
+    return '<figure class="photo' + (tall ? " tall" : "") + '">' +
+      '<img src="' + esc(ph.file) + '" width="' + ph.w + '" height="' + ph.h + '" loading="lazy" decoding="async"' +
+      ' alt="' + esc(b.nameKo) + ' 외관 사진" onerror="this.closest(\'figure\').hidden=true">' +
+      "<figcaption>사진: " + esc(ph.artist) + " · " + esc(ph.license) +
+      ' · <a target="_blank" rel="noopener" href="' + esc(ph.source) + '">출처</a></figcaption></figure>';
+  }
   const pointsHTML = (b) => '<ul class="points">' + b.points.map((p) => "<li>" + esc(p) + "</li>").join("") + "</ul>";
   const spotHTML = (b) => '<p class="keyspot"><b>뷰포인트</b>' + esc(b.keySpot) + "</p>";
   function goHTML(b) {
@@ -141,12 +153,12 @@
   }
   function cardHTML(b) {
     return '<article class="card" data-id="' + b.id + '">' +
-      metaHTML(b) + headHTML(b) + pointsHTML(b) + spotHTML(b) + goHTML(b) + actsHTML(b, false) +
+      metaHTML(b) + headHTML(b) + photoHTML(b) + pointsHTML(b) + spotHTML(b) + goHTML(b) + actsHTML(b, false) +
       "</article>";
   }
   function sheetHTML(b) {
     return '<button type="button" class="close" data-act="close-sheet" aria-label="정보 닫기">✕</button>' +
-      metaHTML(b) + headHTML(b) + spotHTML(b) +
+      metaHTML(b) + headHTML(b) + photoHTML(b) + spotHTML(b) +
       "<details><summary>감상 포인트 " + b.points.length + "가지 보기</summary>" + pointsHTML(b) + "</details>" +
       goHTML(b) + actsHTML(b, true) + altGoHTML(b);
   }
