@@ -1,6 +1,6 @@
 // 서비스 워커: 앱 화면(목록·데이터)을 폰에 저장해 두어 오프라인에서도 열리게 합니다.
 // 파일을 고쳐서 다시 올릴 때는 아래 버전 숫자를 하나 올려 주세요.
-const VERSION = "v2";
+const VERSION = "v3";
 const CACHE = "tokyo-arch-" + VERSION;
 const SHELL = [
   "./",
@@ -10,6 +10,8 @@ const SHELL = [
   "data.js",
   "places.js",
   "photos.js",
+  "sketch-data.js",
+  "sketch.js",
   "app.js",
   "manifest.webmanifest",
   "icons/icon-192.png",
