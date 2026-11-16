@@ -4,7 +4,7 @@
 window.APP_CONFIG = {
   // ① 구글 지도 API 키: 아래 따옴표 안에 새로 발급한 키를 붙여넣으세요.
   //    (발급·제한 방법은 README.md 의 "2. 구글 지도 키 만들기" 참고)
-  GOOGLE_MAPS_API_KEY: "여기에_API_키_붙여넣기",
+  GOOGLE_MAPS_API_KEY: "AIzaSyBTePm_rTuihvAhZt6PrbZw_CJflhmYK8k",
 
   // ② 지도 ID: 그대로 두어도 동작합니다. (README.md "지도 ID" 참고)
   MAP_ID: "DEMO_MAP_ID"
