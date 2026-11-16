@@ -27,6 +27,11 @@
   <div class="stage">
     <!-- 목록 화면 -->
     <main class="list" id="list" tabindex="-1">
+      <!-- 권역 약도: 권역 탭을 눌렀을 때만 보입니다 (전체보기에서는 숨김) -->
+      <details class="sketch" id="sketch" open hidden>
+        <summary id="sketch-sum">권역 약도</summary>
+        <div id="sketch-body"></div>
+      </details>
       <p class="sort-note" id="sort-note" hidden></p>
       <div id="cards"></div>
       <div class="empty" id="empty" hidden>
@@ -110,6 +115,8 @@
   <script src="data.js"></script>
   <script src="places.js"></script>
   <script src="photos.js"></script>
+  <script src="sketch-data.js"></script>
+  <script src="sketch.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -357,3 +357,92 @@ body.view-map .tabs { padding-top: calc(8px + env(safe-area-inset-top)); }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* ── 권역 약도 (sketch.js 가 그리는 SVG) ── */
+.sketch {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0 12px 12px;
+  margin-bottom: 12px;
+  --sk-todo: #d6361f; --sk-done: #6b7280;
+  --sk-st: #0b6f6a; --sk-sg: #7a3fb0;
+}
+@media (prefers-color-scheme: dark) {
+  .sketch { --sk-todo: #ff7a66; --sk-done: #9aa3af; --sk-st: #4fd1c5; --sk-sg: #c9a2ff; }
+}
+.sketch > summary {
+  list-style: none; cursor: pointer;
+  min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  font-size: 1rem; font-weight: 800;
+}
+.sketch > summary::-webkit-details-marker { display: none; }
+.sketch > summary::after { content: "접기 ▴"; font-size: .8rem; font-weight: 700; color: var(--ink-3); }
+.sketch:not([open]) > summary::after { content: "펴기 ▾"; }
+.sk-wrap { margin: 0 -4px; }
+.sk { display: block; width: 100%; height: auto; user-select: none; -webkit-user-select: none; }
+.sk text { font-family: inherit; }
+.sk-frame { fill: var(--bg); stroke: var(--line); stroke-width: 1; }
+.sk-edge { stroke: var(--ink-3); stroke-width: 2; stroke-linecap: round; }
+.sk-edge.far { stroke-dasharray: 2 5; stroke-width: 2.4; }
+.sk-lead { stroke: var(--ink-3); stroke-width: 1; }
+.sk-time rect { fill: var(--surface); stroke: var(--ink-3); stroke-width: 1; }
+.sk-time text { font-size: 10px; font-weight: 800; fill: var(--ink); text-anchor: middle; dominant-baseline: central; }
+.sk-hit { fill: transparent; }
+.sk-b { cursor: pointer; }
+.sk-dot { fill: var(--sk-todo); stroke: #fff; stroke-width: 2; }
+.sk-b.is-done .sk-dot { fill: var(--sk-done); }
+.sk-n { font-size: 12px; font-weight: 800; fill: #fff; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.sk-b.unsure .sk-dot { fill: var(--surface); stroke: var(--sk-todo); stroke-width: 2.4; stroke-dasharray: 3.5 2.5; }
+.sk-b.unsure .sk-n { fill: var(--sk-todo); }
+.sk-b.unsure.is-done .sk-dot { stroke: var(--sk-done); }
+.sk-b.unsure.is-done .sk-n { fill: var(--sk-done); }
+.sk-ring { fill: none; stroke: var(--sk-todo); stroke-width: 1; stroke-dasharray: 2 3; opacity: .7; }
+.sk-t { font-size: 12px; font-weight: 800; fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 3.5px; stroke-linejoin: round; pointer-events: none; }
+.sk-t.lm { font-weight: 700; fill: var(--ink-2); }
+.sk-t.sub { font-weight: 700; fill: var(--sk-todo); }
+.sk-lm.st rect { fill: var(--sk-st); stroke: #fff; stroke-width: 1.5; }
+.sk-lm.st text { font-size: 9px; font-weight: 800; fill: #fff; text-anchor: middle; dominant-baseline: central; }
+.sk-lm.sg path { fill: var(--sk-sg); stroke: #fff; stroke-width: 1.5; stroke-linejoin: round; }
+.sk-north path { fill: var(--ink); }
+.sk-north text { font-size: 11px; font-weight: 800; fill: var(--ink); text-anchor: middle; }
+.sk-scale path { fill: none; stroke: var(--ink); stroke-width: 2; }
+.sk-scale text { font-size: 10px; font-weight: 800; fill: var(--ink); }
+.sk-me .halo { fill: var(--me); opacity: .25; }
+.sk-me .pt { fill: var(--me); stroke: #fff; stroke-width: 2.5; }
+.sk-me.far path { fill: var(--me); stroke: #fff; stroke-width: 1.5; stroke-linejoin: round; }
+.sk-me.far rect { fill: var(--me); }
+.sk-me.far text { font-size: 11px; font-weight: 800; fill: #fff; text-anchor: middle; dominant-baseline: central; }
+
+.sk-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 2px 0; font-size: .82rem; font-weight: 700; color: var(--ink-2); }
+.sk-legend li { display: inline-flex; align-items: center; gap: 5px; }
+.sk-legend small { font-weight: 600; color: var(--ink-3); font-size: .75rem; }
+.lg { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; font-style: normal; font-size: .68rem; font-weight: 800; color: #fff; }
+.lg.b { background: var(--sk-todo); border-radius: 50%; }
+.lg.st { background: var(--sk-st); border-radius: 4px; width: 16px; height: 16px; font-size: .6rem; }
+.lg.sg { background: var(--sk-sg); width: 12px; height: 12px; transform: rotate(45deg); margin: 0 2px; }
+.lg.u { border: 2px dashed var(--sk-todo); color: var(--sk-todo); border-radius: 50%; background: var(--surface); }
+.lg.me { background: var(--me); border-radius: 50%; width: 12px; height: 12px; margin: 0 3px; box-shadow: 0 0 0 3px rgba(26, 115, 232, .25); }
+.sk-note { margin: 8px 2px 0; font-size: .78rem; color: var(--ink-3); font-weight: 600; }
+.sk-sum { margin: 10px 0 0; padding: 10px 12px; background: var(--accent-soft); border-radius: 10px; color: var(--ink); font-size: .95rem; font-weight: 700; }
+.sk-sum p + p { margin-top: 6px; font-size: .85rem; font-weight: 600; color: var(--ink-2); }
+
+/* 카드의 약도 번호 (권역 탭에서만) */
+.card .no { display: none; }
+#cards.numbered .card .no {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 26px; height: 26px; border-radius: 13px; padding: 0 6px;
+  background: #d6361f; color: #fff; font-size: .9rem; font-weight: 800;
+}
+#cards.numbered .card.is-done .no { background: #6b7280; }
+#cards.numbered .card .no.unsure { background: var(--surface); color: #d6361f; border: 2px dashed #d6361f; }
+#cards.numbered .card.is-done .no.unsure { color: #6b7280; border-color: #6b7280; }
+@media (prefers-color-scheme: dark) {
+  #cards.numbered .card .no { background: #ff7a66; color: #1a0a07; }
+  #cards.numbered .card.is-done .no { background: #9aa3af; color: #111; }
+  #cards.numbered .card .no.unsure { background: var(--surface); color: #ff7a66; border-color: #ff7a66; }
+  #cards.numbered .card.is-done .no.unsure { color: #9aa3af; border-color: #9aa3af; }
+}
+.card.flash { animation: sk-flash 1.4s ease-out; }
+@keyframes sk-flash { 0% { box-shadow: 0 0 0 4px var(--accent); } 100% { box-shadow: 0 0 0 4px transparent; } }
+@media (prefers-reduced-motion: reduce) { .card.flash { animation: none; outline: 3px solid var(--accent); } }

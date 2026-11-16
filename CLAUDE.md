@@ -33,7 +33,10 @@ https://mikmikmikmik77.github.io/tokyo-architecture-map/
 | `data.js` | 권역·건축물 문구 (수정 금지) |
 | `places.js` | 좌표, 좌표 등급(`grade`), 길찾기용 이름(`q`, null이면 좌표로 안내) |
 | `photos.js`, `photos/` | 건물 사진과 저작자 정보 |
+| `sketch.js`, `sketch-data.js` | 권역 약도(SVG를 앱이 직접 그림). 랜드마크 좌표·이름표용 짧은 이름. 근거는 `tools/landmarks_evidence.txt` |
 | `sw.js`, `manifest.webmanifest`, `icons/` | 오프라인 저장, 홈 화면 설치 |
+
+권역 약도: 권역 탭에서만 카드 목록 위에 뜬다(전체보기는 숨김). 약도 번호는 권역 안에서 1부터이고 카드 배지와 짝이다. 도보 시간은 직선 거리÷분속 80m 어림이며, 위치 불확실(grade X·C) 건물은 점선 점으로 그리고 도보 계산에서 뺀다.
 
 `app.js`의 원칙: 카드는 처음 한 번만 그리고 탭·필터는 보이기/숨기기와 순서 변경만 한다. 구글 지도 스크립트는
 지도나 스트리트뷰를 처음 열 때만 불러온다. 지도 핀은 `AdvancedMarkerElement`. 방문·즐겨찾기는 `localStorage`.
@@ -50,5 +53,6 @@ https://mikmikmikmik77.github.io/tokyo-architecture-map/
 
 - 좌표 미확인: 토즈 오모테산도, 더 주얼스 오브 아오야마. 정밀도 낮음: 니콜라스 G. 하이에크 센터.
 - 사진 없음: 니콜라스 G. 하이에크 센터, 더 주얼스 오브 아오야마.
+- 약도 랜드마크 중 긴자·롯폰기·시부야·도요스역은 OSM에 역 점이 없어 출입구 평균(수십~150m 오차), 신주쿠·에비스역은 역 점 평균이다. Overpass가 끊겨 Nominatim으로 조회했다.
 - `MAP_ID`는 구글의 시험용 값(`DEMO_MAP_ID`)이다.
 - 길찾기 이름 검색이 구글맵에서 맞는 장소를 가리키는지는 실제 폰에서만 확인할 수 있다.

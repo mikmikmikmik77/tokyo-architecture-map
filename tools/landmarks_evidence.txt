@@ -1,0 +1,42 @@
+권역 약도 랜드마크 좌표 근거 (조회일 2026-11-16, OpenStreetMap)
+
+조회 경로: Overpass(overpass-api.de)가 이 작업 환경에서 계속 끊겨 Nominatim(nominatim.openstreetmap.org)으로 조회했다.
+way/relation 의 좌표는 Nominatim 이 주는 중심값이라 Overpass 'out center' 와 수 m 다를 수 있다.
+'출입구 평균'은 역 점 객체를 못 찾아 같은 이름 출입구들을 평균한 값이다(역 근처 대략 위치, 오차 수십~150m).
+좌표를 못 찾은 랜드마크는 없다(찾지 못한 것은 후보에서 뺐다). 후보 중 확인 못 한 것: 없음.
+
+[ueno]
+  ueno_sta 우에노역 (station) 35.713413, 139.776542 — OSM 역 점(n236578444)
+  ueno_tnm 도쿄국립박물관 (sight) 35.719045, 139.775968 — OSM 건물(way/33439660)
+  ueno_akamon 도쿄대 아카몬 (sight) 35.710603, 139.760354 — OSM 명소(way/240891310)
+[asakusa]
+  asakusa_sta 아사쿠사역 (station) 35.710842, 139.797816 — OSM 역 점(n6237151013)
+  asakusa_sensoji 센소지 (sight) 35.713403, 139.795526 — OSM 경내 면(way/173154847) 중심
+  asakusa_skytree 도쿄 스카이트리 (sight) 35.710054, 139.810714 — OSM(way/288269147)
+[marunouchi]
+  yurakucho_sta 유라쿠초역 (station) 35.674957, 139.763045 — OSM 역 점(node/2558121955, JR)
+  nijubashi 니주바시 (sight) 35.680222, 139.753599 — OSM(way/43933152)
+[ginza]
+  ginza_sta 긴자역 (station) 35.671882, 139.764654 — OSM 출입구 4곳(n1327305155 외) 평균 · 역 근처 대략 위치
+  kabukiza 가부키자 (sight) 35.669657, 139.768111 — OSM(relation/4859313)
+[azabudai_roppongi]
+  roppongi_sta 롯폰기역 (station) 35.663478, 139.732778 — OSM 출입구 2곳(n1509876354, n2590478016) 평균 · 역 근처 대략 위치
+  tokyo_tower 도쿄타워 (sight) 35.658449, 139.745536 — OSM(relation/4247312)
+[omotesando_aoyama]
+  omotesando_sta 오모테산도역 (station) 35.665230, 139.712393 — OSM 역 점(node/6219132765)
+  okamoto_taro 오카모토 타로 기념관 (sight) 35.661272, 139.715530 — OSM(node/1966249089)
+[shibuya_harajuku]
+  shibuya_sta 시부야역 (station) 35.659062, 139.700865 — OSM 출입구 3곳(n7092260266 외) 평균 · 역 근처 대략 위치
+  harajuku_sta 하라주쿠역 (station) 35.670502, 139.702414 — OSM 역 건물(w823006849) 중심
+  shibuya_crossing 스크램블 교차로 (sight) 35.659495, 139.700498 — OSM(way/1335178864)
+[yoyogi_shinjuku]
+  shinjuku_sta 신주쿠역 (station) 35.690330, 139.699785 — OSM 역 점 5개(n6283384525 외) 평균
+  meiji_jingu 메이지 신궁 (sight) 35.674842, 139.699627 — OSM 경내 면(way/469908925) 중심
+[daikanyama_ebisu]
+  daikanyama_sta 다이칸야마역 (station) 35.648157, 139.703293 — OSM 역 점(n3656056035)
+  ebisu_sta 에비스역 (station) 35.646708, 139.709427 — OSM 역 점 2개(n262449251, n2558121904) 평균
+  asakura 구 아사쿠라가 주택 (sight) 35.647436, 139.700788 — OSM(way/173226201)
+[toyosu_odaiba]
+  toyosu_sta 도요스역 (station) 35.655020, 139.796457 — OSM 출입구 2곳(n1155821912, n1237991040) 평균 · 역 근처 대략 위치
+  odaiba_kaihinkoen_sta 오다이바카이힌코엔역 (station) 35.629906, 139.778805 — OSM 역 점(n3349902309)
+  gundam 유니콘 건담 (sight) 35.624438, 139.775490 — OSM 조형물(way/328166155)

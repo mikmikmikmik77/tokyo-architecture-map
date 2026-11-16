@@ -10,10 +10,15 @@
   const DATA = window.TOUR_DATA;
   const PLACES = window.PLACES || {};
   const PHOTOS = window.PHOTOS || {};
+  const SKETCH_DATA = window.SKETCH_DATA || { landmarks: {}, short: {} };
+  const Sketch = window.Sketch;
   const REGIONS = DATA.regions;
   const BUILDINGS = DATA.buildings.filter((b) => PLACES[b.id]);
   const BY_ID = new Map(BUILDINGS.map((b) => [b.id, b]));
   const $ = (id) => document.getElementById(id);
+  // 약도 번호: 권역 안에서 1부터. 카드와 약도의 같은 번호가 같은 건물입니다.
+  const NUM = new Map();
+  REGIONS.forEach((r) => BUILDINGS.filter((b) => b.regionId === r.id).forEach((b, i) => NUM.set(b.id, i + 1)));
 
   /* ───────── 저장소 (폰에 남는 기록) ───────── */
   const store = {
@@ -96,8 +101,10 @@
   };
 
   /* ───────── 카드/시트 HTML ───────── */
-  function metaHTML(b) {
+  function metaHTML(b, withNo) {
+    const sure = PLACES[b.id].grade !== "X" && PLACES[b.id].grade !== "C";
     return '<div class="meta">' +
+      (withNo ? '<span class="no' + (sure ? "" : " unsure") + '" role="img" aria-label="약도 번호 ' + NUM.get(b.id) + '">' + NUM.get(b.id) + "</span>" : "") +
       '<span class="badge">' + esc(b.regionName) + "</span>" +
       '<span class="dist" data-dist hidden></span>' +
       '<span class="flag done">방문 완료</span>' +
@@ -153,7 +160,7 @@
   }
   function cardHTML(b) {
     return '<article class="card" data-id="' + b.id + '">' +
-      metaHTML(b) + headHTML(b) + photoHTML(b) + pointsHTML(b) + spotHTML(b) + goHTML(b) + actsHTML(b, false) +
+      metaHTML(b, true) + headHTML(b) + photoHTML(b) + pointsHTML(b) + spotHTML(b) + goHTML(b) + actsHTML(b, false) +
       "</article>";
   }
   function sheetHTML(b) {
@@ -190,11 +197,86 @@
       if (f) f.setAttribute("aria-pressed", fav);
     });
     mapUI.syncPin(id);
+    sketchUI.syncDot(id);
   }
   function updateProgress() {
     const n = BUILDINGS.filter((b) => state.visited.has(b.id)).length;
     $("progress").textContent = "방문 " + n + " / " + BUILDINGS.length;
   }
+
+  /* ───────── 권역 약도 ─────────
+   * 권역 탭을 누르면 카드 목록 맨 위에 그 권역만 담은 약도를 보여줍니다. (전체보기에서는 숨김)
+   * 약도는 sketch.js 가 SVG 로 직접 그리므로 인터넷이 없어도 보입니다. 권역마다 한 번만 그려 두고 다시 씁니다.
+   * 필터(즐겨찾기만·안 가본 곳만)와 상관없이 그 권역의 건물을 모두 보여줘야 '어디를 뺄지' 고를 수 있습니다.
+   */
+  const shortName = (b) => (SKETCH_DATA.short && SKETCH_DATA.short[b.id]) || b.nameKo.replace(/\s*\([^)]*\)\s*/g, " ").trim();
+  const sketchUI = {
+    cache: new Map(),   // 권역 id → { L(약도 계산 결과), html }
+    shown: null,
+
+    make(rid) {
+      if (sketchUI.cache.has(rid)) return sketchUI.cache.get(rid);
+      const blds = BUILDINGS.filter((b) => b.regionId === rid).map((b) => ({
+        id: b.id, num: NUM.get(b.id), name: shortName(b), lat: PLACES[b.id].lat, lng: PLACES[b.id].lng, grade: PLACES[b.id].grade
+      }));
+      const lms = ((SKETCH_DATA.landmarks || {})[rid] || []).filter((l) => l.lat != null && l.lng != null)
+        .map((l) => ({ id: l.id, type: l.type, name: l.name, lat: l.lat, lng: l.lng }));
+      const L = Sketch.build({ W: 360, buildings: blds, landmarks: lms });
+      const hasSt = lms.some((l) => l.type === "station"), hasSg = lms.some((l) => l.type !== "station");
+      const hasUnsure = blds.some((b) => b.grade === "X" || b.grade === "C");
+      const hasLine = L.edges.length > 0;
+      const regionName = REGIONS.find((r) => r.id === rid).name;
+      const html =
+        '<div class="sk-wrap"><svg class="sk" viewBox="0 0 ' + L.W + " " + L.H + '" role="img" aria-label="' + esc(regionName) +
+        ' 약도. 북쪽이 위이고 거리 비율은 실제와 같아요. 건물 ' + blds.length + '곳의 위치 관계를 보여줘요.">' +
+        L.svg + '<g id="sk-me"></g></svg></div>' +
+        '<ul class="sk-legend" aria-label="약도 기호">' +
+        '<li><i class="lg b">1</i>건축물 <small>(카드 번호)</small></li>' +
+        (hasSt ? '<li><i class="lg st">역</i>역</li>' : "") +
+        (hasSg ? '<li><i class="lg sg"></i>명소</li>' : "") +
+        (hasUnsure ? '<li><i class="lg u">?</i>위치 불확실</li>' : "") +
+        '<li><i class="lg me"></i>내 위치 <small>(위치를 켜면)</small></li></ul>' +
+        (hasLine ? '<p class="sk-note">선 위 숫자는 걸어서 걸리는 시간 어림이에요. 직선 거리를 분속 80m로 나눈 값이라, 실제 길은 더 걸릴 수 있어요. 실선은 도보 ' +
+          Sketch.CLOSE_MIN + "분 이내, 점선은 그보다 먼 연결이에요.</p>" : "") +
+        (L.summary.length ? '<div class="sk-sum">' + L.summary.map((t) => "<p>" + esc(t) + "</p>").join("") + "</div>" : "");
+      const rec = { L, html };
+      sketchUI.cache.set(rid, rec);
+      return rec;
+    },
+
+    sync() {
+      const on = state.region !== "all" && !!Sketch;
+      $("cards").classList.toggle("numbered", state.region !== "all");
+      $("sketch").hidden = !on;
+      if (!on) { sketchUI.shown = null; return; }
+      if (sketchUI.shown === state.region) return;
+      sketchUI.shown = state.region;
+      const rec = sketchUI.make(state.region);
+      $("sketch-sum").textContent = "권역 약도 · " + REGIONS.find((r) => r.id === state.region).name;
+      $("sketch-body").innerHTML = rec.html;
+      BUILDINGS.forEach((b) => { if (b.regionId === state.region) sketchUI.syncDot(b.id); });
+      sketchUI.syncMe();
+    },
+    syncDot(id) {
+      const g = $("sketch-body").querySelector('[data-sk="' + id + '"]');
+      if (g) g.classList.toggle("is-done", state.visited.has(id));
+    },
+    syncMe() {
+      const slot = $("sk-me");
+      if (!slot || !sketchUI.shown) return;
+      slot.innerHTML = state.pos ? Sketch.meMarkup(sketchUI.cache.get(sketchUI.shown).L, state.pos) : "";
+    },
+    // 약도의 번호 점을 누르면 그 건물의 카드로 이동
+    tap(id) {
+      const card = cardEls.get(id);
+      if (!card) return;
+      if (card.hidden) return toast("지금 필터 때문에 이 건물 카드가 숨겨져 있어요. 필터를 풀면 보여요.", 3600);
+      card.scrollIntoView({ block: "start", behavior: "smooth" });
+      card.classList.remove("flash");
+      void card.offsetWidth;
+      card.classList.add("flash");
+    }
+  };
 
   /* ───────── 필터 · 정렬 ───────── */
   const passFilters = (b) => (!state.onlyFav || state.fav.has(b.id)) && (!state.onlyTodo || !state.visited.has(b.id));
@@ -227,6 +309,7 @@
     note.hidden = !state.sortNear;
     if (state.sortNear) note.textContent = "내 위치에서 가까운 순으로 보는 중 · 거리는 직선 기준이에요";
     mapUI.syncVisibility();
+    sketchUI.sync();
   }
 
   function applyOrder() {
@@ -301,6 +384,7 @@
       // 읽는 도중 카드가 튀지 않게, 120m 이상 움직였을 때만 순서를 다시 맞춥니다.
       if (state.sortNear && (!state.sortedAt || distanceM(state.sortedAt, state.pos) > 120)) applyOrder();
       mapUI.syncMe();
+      sketchUI.syncMe();
     },
     message(err) {
       const code = err && err.code;
@@ -676,6 +760,12 @@
       if (t) setRegion(t.dataset.region);
     });
     $("cards").addEventListener("click", onAction);
+    $("sketch-body").addEventListener("click", (e) => {
+      const g = e.target.closest("[data-sk]");
+      if (g) sketchUI.tap(g.dataset.sk);
+    });
+    $("sketch").open = !!store.get("sketchOpen", true);
+    $("sketch").addEventListener("toggle", () => store.set("sketchOpen", $("sketch").open));
     $("sheet").addEventListener("click", onAction);
     document.querySelector(".dock").addEventListener("click", (e) => {
       const b = e.target.closest("button");
