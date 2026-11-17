@@ -21,6 +21,13 @@
     const svg = (SKETCH_ICONS.glyphs || {})[v];
     return svg ? { svg } : null;
   };
+  // 카드 번호 옆에 붙이는 같은 아이콘 (약도와 짝을 맞추는 용도라 권역 탭에서만 보임)
+  const cardIcon = (id) => {
+    const ic = sketchIcon(id, "building");
+    if (!ic) return "";
+    return '<span class="no-ic" aria-hidden="true">' + (ic.img ? '<img src="' + esc(ic.img) + '" alt="">'
+      : '<svg viewBox="0 0 24 24">' + ic.svg + "</svg>") + "</span>";
+  };
   const REGIONS = DATA.regions;
   const BUILDINGS = DATA.buildings.filter((b) => PLACES[b.id]);
   const BY_ID = new Map(BUILDINGS.map((b) => [b.id, b]));
@@ -113,7 +120,7 @@
   function metaHTML(b, withNo) {
     const sure = PLACES[b.id].grade !== "X" && PLACES[b.id].grade !== "C";
     return '<div class="meta">' +
-      (withNo ? '<span class="no' + (sure ? "" : " unsure") + '" role="img" aria-label="약도 번호 ' + NUM.get(b.id) + '">' + NUM.get(b.id) + "</span>" : "") +
+      (withNo ? '<span class="no' + (sure ? "" : " unsure") + '" role="img" aria-label="약도 번호 ' + NUM.get(b.id) + '">' + NUM.get(b.id) + "</span>" + cardIcon(b.id) : "") +
       '<span class="badge">' + esc(b.regionName) + "</span>" +
       '<span class="dist" data-dist hidden></span>' +
       '<span class="flag done">방문 완료</span>' +

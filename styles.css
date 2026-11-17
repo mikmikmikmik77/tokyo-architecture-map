@@ -462,6 +462,14 @@ body.view-map .tabs { padding-top: calc(8px + env(safe-area-inset-top)); }
   #cards.numbered .card .no.unsure { background: var(--surface); color: #ff7a66; border-color: #ff7a66; }
   #cards.numbered .card.is-done .no.unsure { color: #9aa3af; border-color: #9aa3af; }
 }
+.card .no-ic { display: none; }
+#cards.numbered .card .no-ic { display: inline-flex; width: 24px; height: 24px; color: #d6361f; }
+#cards.numbered .card.is-done .no-ic { color: #6b7280; }
+.card .no-ic svg, .card .no-ic img { width: 24px; height: 24px; display: block; }
+@media (prefers-color-scheme: dark) {
+  #cards.numbered .card .no-ic { color: #ff7a66; }
+  #cards.numbered .card.is-done .no-ic { color: #9aa3af; }
+}
 .card.flash { animation: sk-flash 1.4s ease-out; }
 @keyframes sk-flash { 0% { box-shadow: 0 0 0 4px var(--accent); } 100% { box-shadow: 0 0 0 4px transparent; } }
 @media (prefers-reduced-motion: reduce) { .card.flash { animation: none; outline: 3px solid var(--accent); } }
