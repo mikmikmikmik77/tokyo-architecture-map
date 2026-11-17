@@ -12,6 +12,22 @@
   const PHOTOS = window.PHOTOS || {};
   const SKETCH_DATA = window.SKETCH_DATA || { landmarks: {}, short: {} };
   const Sketch = window.Sketch;
+  const SKETCH_ICONS = window.SKETCH_ICONS || { glyphs: {}, byId: {}, byType: {} };
+  // 약도 아이콘 찾기: 대상 id → 없으면 종류(type) → 없으면 null(예전 모양으로 그림)
+  const sketchIcon = (id, type) => {
+    const v = (SKETCH_ICONS.byId || {})[id] || (type && (SKETCH_ICONS.byType || {})[type]) || null;
+    if (!v) return null;
+    if (typeof v === "object") return v.img ? { img: v.img } : null;
+    const svg = (SKETCH_ICONS.glyphs || {})[v];
+    return svg ? { svg } : null;
+  };
+  // 카드 번호 옆에 붙이는 같은 아이콘 (약도와 짝을 맞추는 용도라 권역 탭에서만 보임)
+  const cardIcon = (id) => {
+    const ic = sketchIcon(id, "building");
+    if (!ic) return "";
+    return '<span class="no-ic" aria-hidden="true">' + (ic.img ? '<img src="' + esc(ic.img) + '" alt="">'
+      : '<svg viewBox="0 0 24 24">' + ic.svg + "</svg>") + "</span>";
+  };
   const REGIONS = DATA.regions;
   const BUILDINGS = DATA.buildings.filter((b) => PLACES[b.id]);
   const BY_ID = new Map(BUILDINGS.map((b) => [b.id, b]));
@@ -104,7 +120,7 @@
   function metaHTML(b, withNo) {
     const sure = PLACES[b.id].grade !== "X" && PLACES[b.id].grade !== "C";
     return '<div class="meta">' +
-      (withNo ? '<span class="no' + (sure ? "" : " unsure") + '" role="img" aria-label="약도 번호 ' + NUM.get(b.id) + '">' + NUM.get(b.id) + "</span>" : "") +
+      (withNo ? '<span class="no' + (sure ? "" : " unsure") + '" role="img" aria-label="약도 번호 ' + NUM.get(b.id) + '">' + NUM.get(b.id) + "</span>" + cardIcon(b.id) : "") +
       '<span class="badge">' + esc(b.regionName) + "</span>" +
       '<span class="dist" data-dist hidden></span>' +
       '<span class="flag done">방문 완료</span>' +
@@ -217,10 +233,20 @@
     make(rid) {
       if (sketchUI.cache.has(rid)) return sketchUI.cache.get(rid);
       const blds = BUILDINGS.filter((b) => b.regionId === rid).map((b) => ({
-        id: b.id, num: NUM.get(b.id), name: shortName(b), lat: PLACES[b.id].lat, lng: PLACES[b.id].lng, grade: PLACES[b.id].grade
+        id: b.id, num: NUM.get(b.id), name: shortName(b), lat: PLACES[b.id].lat, lng: PLACES[b.id].lng, grade: PLACES[b.id].grade,
+        icon: sketchIcon(b.id, "building")
       }));
       const lms = ((SKETCH_DATA.landmarks || {})[rid] || []).filter((l) => l.lat != null && l.lng != null)
-        .map((l) => ({ id: l.id, type: l.type, name: l.name, lat: l.lat, lng: l.lng }));
+        .map((l) => ({ id: l.id, type: l.type, name: l.name, lat: l.lat, lng: l.lng, icon: sketchIcon(l.id, l.type) }));
+      // 기호 설명: 아이콘을 쓰는 역·명소가 있으면 그 아이콘으로 보여줍니다.
+      const lgIcon = (cls, pick) => {
+        const l = lms.find((x) => pick(x) && x.icon);
+        if (!l) return null;
+        return '<i class="lg ic ' + cls + '">' + (l.icon.img ? '<img src="' + esc(l.icon.img) + '" alt="">'
+          : '<svg viewBox="0 0 24 24" aria-hidden="true">' + l.icon.svg + "</svg>") + "</i>";
+      };
+      const lgSt = lgIcon("st", (x) => x.type === "station"), lgSg = lgIcon("sg", (x) => x.type !== "station");
+      const anyBIcon = blds.some((b) => b.icon);
       const L = Sketch.build({ W: 360, buildings: blds, landmarks: lms });
       const hasSt = lms.some((l) => l.type === "station"), hasSg = lms.some((l) => l.type !== "station");
       const hasUnsure = blds.some((b) => b.grade === "X" || b.grade === "C");
@@ -231,9 +257,9 @@
         ' 약도. 북쪽이 위이고 거리 비율은 실제와 같아요. 건물 ' + blds.length + '곳의 위치 관계를 보여줘요.">' +
         L.svg + '<g id="sk-me"></g></svg></div>' +
         '<ul class="sk-legend" aria-label="약도 기호">' +
-        '<li><i class="lg b">1</i>건축물 <small>(카드 번호)</small></li>' +
-        (hasSt ? '<li><i class="lg st">역</i>역</li>' : "") +
-        (hasSg ? '<li><i class="lg sg"></i>명소</li>' : "") +
+        '<li><i class="lg b">1</i>건축물 <small>(카드 번호' + (anyBIcon ? " · 누르면 카드로" : "") + ')</small></li>' +
+        (hasSt ? "<li>" + (lgSt || '<i class="lg st">역</i>') + "역</li>" : "") +
+        (hasSg ? "<li>" + (lgSg || '<i class="lg sg"></i>') + "명소</li>" : "") +
         (hasUnsure ? '<li><i class="lg u">?</i>위치 불확실</li>' : "") +
         '<li><i class="lg me"></i>내 위치 <small>(위치를 켜면)</small></li></ul>' +
         (hasLine ? '<p class="sk-note">선 위 숫자는 걸어서 걸리는 시간 어림이에요. 직선 거리를 분속 80m로 나눈 값이라, 실제 길은 더 걸릴 수 있어요. 실선은 도보 ' +
