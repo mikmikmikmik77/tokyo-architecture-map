@@ -1,7 +1,7 @@
 /* 권역 약도 — 앱이 직접 그리는 SVG 약도 (인터넷 없이도 보입니다)
  *  - 북쪽이 위, 거리 비율은 실제와 같고(가로·세로 같은 축척), 축척 막대를 함께 그립니다.
  *  - 건물은 번호 점, 역·명소는 다른 모양. 가까운 건물끼리 선으로 잇고 도보 시간 어림을 적습니다.
- *  - 아이콘(icon)이 붙은 대상은 점 대신 아이콘으로 그립니다. 건물은 아이콘 + 이름표 앞 번호 배지 + 이름.
+ *  - 아이콘(icon)이 붙은 대상은 점 대신 아이콘으로 그립니다. 건물은 아이콘 + 아이콘 오른쪽 위 모서리의 번호 배지, 이름은 따로 놓습니다.
  *    아이콘은 같은 좌표 위에 놓는 표식일 뿐이고, 위치·축척 계산은 아이콘이 있든 없든 같습니다.
  *  - 도보 시간 = 직선 거리 ÷ 분속 80m (일본 부동산 표시 기준). 실제 길보다 짧게 나올 수 있는 어림값입니다.
  *  - 위치가 불확실한 건물(grade X·C)은 점선 빈 점으로 그리고, 도보 시간 계산에서는 뺍니다.
@@ -16,7 +16,7 @@
   const FS = 12;               // 건물 이름표 글자 크기 (SVG 단위 = 폰 화면 약 1px)
   const FS_SUB = 10;           // 랜드마크·보조 글자 크기
   const R_ICON = { b: 13, sg: 11, st: 10 };   // 아이콘 반지름(건물 26px, 명소 22px, 역 20px)
-  const BADGE_R = 8, BADGE_W = 2 * BADGE_R + 4;   // 이름표 앞 번호 배지
+  const BADGE_R = 8, BADGE_AT = 0.78;   // 아이콘 오른쪽 위 모서리에 붙는 번호 배지(반지름, 아이콘 중심에서의 위치 비율)
 
   // 아이콘 그리기: { svg: 24×24 칸 SVG 조각 } 또는 { img: 이미지 파일 경로 }
   function iconMarkup(ic, x, y, r) {
@@ -315,6 +315,8 @@
     // 3) 이름표 자리 정하기 (점·축척 막대·방위표를 피해서)
     const rects = [];   // 이미 차지한 자리
     items.forEach((it) => rects.push({ x: it.x - it.r - 1, y: it.y - it.r - 1, w: 2 * it.r + 2, h: 2 * it.r + 2, fixed: true }));
+    // 아이콘 오른쪽 위에 붙는 번호 배지 자리도 이름표가 피해 가게 합니다.
+    items.forEach((it) => { if (it.kind === "b" && it.icon) rects.push({ x: it.x + it.r * BADGE_AT - BADGE_R - 1, y: it.y - it.r * BADGE_AT - BADGE_R - 1, w: 2 * BADGE_R + 2, h: 2 * BADGE_R + 2, fixed: true }); });
     // 방위표(오른쪽 위)와 축척 막대(왼쪽 아래) 자리
     rects.push({ x: W - 40, y: 6, w: 34, h: 34, fixed: true });
     const scaleOpts = [50, 100, 200, 250, 500, 1000, 2000, 5000];
@@ -327,7 +329,7 @@
     const ctx = { W, H, rects, segs };
 
     function put(it, lines, fsList) {
-      const badge = it.kind === "b" && it.icon ? BADGE_W : 0;   // 아이콘 건물은 이름 앞에 번호 배지 자리
+      const badge = 0;   // 번호 배지는 이름표가 아니라 아이콘 모서리에 붙습니다
       const w = Math.max(...lines.map((t, i) => textW(t, fsList[i]))) + 6 + badge;
       const h = lines.reduce((a, t, i) => a + fsList[i] + 3, 0) + 2;
       let best = null;
@@ -417,8 +419,8 @@
     items.filter((i) => i.kind === "b").forEach((it) => {
       const b = it.ref;
       if (it.icon) {
-        // 아이콘 + (이름표 맨 앞) 번호 배지. 둘 다 같은 묶음이라 방문 완료 색이 함께 바뀌고, 어느 쪽을 눌러도 카드로 갑니다.
-        const r = it.label.rect, bx = r.x + 3 + BADGE_R, by = r.y + 1 + FS / 2 + 1.5;
+        // 아이콘 + (오른쪽 위 모서리) 번호 배지. 둘 다 같은 묶음이라 방문 완료 색이 함께 바뀌고, 어느 쪽을 눌러도 카드로 갑니다.
+        const r = it.label.rect, bx = it.x + it.r * BADGE_AT, by = it.y - it.r * BADGE_AT;
         g.push('<g class="sk-b ic' + (it.sure ? "" : " unsure") + '" data-sk="' + esc(b.id) + '">' +
           '<circle class="sk-hit" cx="' + f1(it.x) + '" cy="' + f1(it.y) + '" r="22"/>' +
           '<rect class="sk-hit" x="' + f1(r.x - 4) + '" y="' + f1(r.y - 8) + '" width="' + f1(r.w + 8) + '" height="' + f1(r.h + 16) + '"/>' +
