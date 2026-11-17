@@ -76,7 +76,6 @@ a { color: inherit; }
   display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
 }
 .top h1 { font-size: 1.15rem; font-weight: 800; letter-spacing: -.01em; }
-.top h1 span { font-weight: 600; color: var(--ink-3); font-size: .9rem; }
 .progress { font-size: .9rem; font-weight: 700; color: var(--done); white-space: nowrap; }
 body.view-map .top { display: none; }
 body.view-map .tabs { padding-top: calc(8px + env(safe-area-inset-top)); }
