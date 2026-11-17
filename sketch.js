@@ -1,6 +1,8 @@
 /* 권역 약도 — 앱이 직접 그리는 SVG 약도 (인터넷 없이도 보입니다)
  *  - 북쪽이 위, 거리 비율은 실제와 같고(가로·세로 같은 축척), 축척 막대를 함께 그립니다.
  *  - 건물은 번호 점, 역·명소는 다른 모양. 가까운 건물끼리 선으로 잇고 도보 시간 어림을 적습니다.
+ *  - 아이콘(icon)이 붙은 대상은 점 대신 아이콘으로 그립니다. 건물은 아이콘 + 이름표 앞 번호 배지 + 이름.
+ *    아이콘은 같은 좌표 위에 놓는 표식일 뿐이고, 위치·축척 계산은 아이콘이 있든 없든 같습니다.
  *  - 도보 시간 = 직선 거리 ÷ 분속 80m (일본 부동산 표시 기준). 실제 길보다 짧게 나올 수 있는 어림값입니다.
  *  - 위치가 불확실한 건물(grade X·C)은 점선 빈 점으로 그리고, 도보 시간 계산에서는 뺍니다.
  *  - 계산(투영, 가까운 건물 묶기, 이름표 겹침 피하기)은 여기서만 하고, 화면 연결은 app.js 가 합니다.
@@ -13,6 +15,15 @@
   const R_EARTH = 6371000;
   const FS = 12;               // 건물 이름표 글자 크기 (SVG 단위 = 폰 화면 약 1px)
   const FS_SUB = 10;           // 랜드마크·보조 글자 크기
+  const R_ICON = { b: 13, sg: 11, st: 10 };   // 아이콘 반지름(건물 26px, 명소 22px, 역 20px)
+  const BADGE_R = 8, BADGE_W = 2 * BADGE_R + 4;   // 이름표 앞 번호 배지
+
+  // 아이콘 그리기: { svg: 24×24 칸 SVG 조각 } 또는 { img: 이미지 파일 경로 }
+  function iconMarkup(ic, x, y, r) {
+    const a = 'x="' + f1(x - r) + '" y="' + f1(y - r) + '" width="' + 2 * r + '" height="' + 2 * r + '"';
+    if (ic.img) return '<image class="sk-ic" href="' + esc(ic.img) + '" ' + a + "/>";
+    return '<svg class="sk-ic" viewBox="0 0 24 24" ' + a + ">" + ic.svg + "</svg>";
+  }
 
   /* ───────── 도우미 ───────── */
   const rad = (d) => (d * Math.PI) / 180;
@@ -204,7 +215,8 @@
   }
 
   /* ───────── 약도 만들기 ─────────
-   * o = { W, buildings:[{id,num,name,lat,lng,grade}], landmarks:[{id,type,name,lat,lng}] }
+   * o = { W, buildings:[{id,num,name,lat,lng,grade,icon?}], landmarks:[{id,type,name,lat,lng,icon?}] }
+   *     icon = { svg } 또는 { img }. 없으면 번호 점/마름모/'역' 네모로 그립니다.
    * 돌려주는 값: { W, H, svg(내부 마크업), summary:[문장], proj, rects, center }
    */
   function build(o) {
@@ -235,11 +247,12 @@
     const items = [];
     blds.forEach((b) => {
       const p = toXY(b);
-      items.push({ kind: "b", ref: b, x: p.x, y: p.y, r: 11, sure: isSure(b) });
+      items.push({ kind: "b", ref: b, x: p.x, y: p.y, r: b.icon ? R_ICON.b : 11, sure: isSure(b), icon: b.icon || null });
     });
     lms.forEach((l) => {
       const p = toXY(l);
-      items.push({ kind: l.type === "station" ? "st" : "sg", ref: l, x: p.x, y: p.y, r: 8 });
+      const kind = l.type === "station" ? "st" : "sg";
+      items.push({ kind, ref: l, x: p.x, y: p.y, r: l.icon ? R_ICON[kind] : 8, icon: l.icon || null });
     });
 
     // 2) 가까운 건물 잇기
@@ -251,9 +264,33 @@
       const A = sureItems[e.a], B = sureItems[e.b];
       const len = Math.hypot(B.x - A.x, B.y - A.y) || 1;
       const ux = (B.x - A.x) / len, uy = (B.y - A.y) / len;
-      const seg = { x1: A.x + ux * 11, y1: A.y + uy * 11, x2: B.x - ux * 11, y2: B.y - uy * 11 };
+      const ga = A.icon ? A.r + 2 : 11, gb = B.icon ? B.r + 2 : 11;   // 아이콘은 선이 닿지 않게 조금 띄움
+      const seg = { x1: A.x + ux * ga, y1: A.y + uy * ga, x2: B.x - ux * gb, y2: B.y - uy * gb };
       segs.push(seg);
       return { e, seg, A, B, near: e.min <= CLOSE_MIN, mx: (A.x + B.x) / 2, my: (A.y + B.y) / 2, ux, uy, len };
+    });
+
+    // 2-1) 아이콘끼리 겹칠 때: 건물은 제 좌표에 그대로 두고, 역·명소 아이콘만 옆으로 살짝 비켜 놓습니다.
+    //      실제 위치에는 작은 점을 찍고 아이콘까지 가는 선을 그어, 위치 정보는 그대로 남깁니다.
+    const placed = items.filter((i) => i.kind === "b");
+    items.filter((i) => i.kind !== "b").forEach((it) => {
+      const hitsItem = (x, y) => placed.some((o) => Math.hypot(o.x - x, o.y - y) < o.r + it.r + 3);
+      if (it.icon && hitsItem(it.x, it.y)) {
+        const box = (x, y) => ({ x: x - it.r - 1, y: y - it.r - 1, w: 2 * it.r + 2, h: 2 * it.r + 2 });
+        let best = null;
+        for (let d = 6; d <= 80 && !best; d += 4) {
+          for (let k = 0; k < 16; k++) {
+            const a = (k * Math.PI) / 8, x = it.x + d * Math.cos(a), y = it.y + d * Math.sin(a);
+            if (x < it.r + 6 || x > W - it.r - 6 || y < it.r + 6 || y > H - it.r - 6) continue;
+            if (hitsItem(x, y) || segs.some((sg) => segHitsRect(sg, box(x, y)))) continue;
+            // 같은 거리라면 가장 가까운 건물에서 멀어지는 쪽을 고릅니다.
+            const far = Math.min(...placed.map((o) => Math.hypot(o.x - x, o.y - y)));
+            if (!best || far > best.far) best = { x, y, far };
+          }
+        }
+        if (best) { it.anchor = { x: it.x, y: it.y }; it.x = best.x; it.y = best.y; }
+      }
+      placed.push(it);
     });
 
     // 3) 이름표 자리 정하기 (점·축척 막대·방위표를 피해서)
@@ -271,7 +308,8 @@
     const ctx = { W, H, rects, segs };
 
     function put(it, lines, fsList) {
-      const w = Math.max(...lines.map((t, i) => textW(t, fsList[i]))) + 6;
+      const badge = it.kind === "b" && it.icon ? BADGE_W : 0;   // 아이콘 건물은 이름 앞에 번호 배지 자리
+      const w = Math.max(...lines.map((t, i) => textW(t, fsList[i]))) + 6 + badge;
       const h = lines.reduce((a, t, i) => a + fsList[i] + 3, 0) + 2;
       let best = null;
       labelCandidates(it, w, h).forEach((c) => {
@@ -280,7 +318,7 @@
       });
       const rect = { x: best.c.x, y: best.c.y, w, h };
       rects.push(rect);
-      return { rect, anchor: best.c.a, lead: best.c.lead, lines, fsList };
+      return { rect, anchor: best.c.a, lead: best.c.lead, lines, fsList, badge };
     }
     const nameOf = (it) => it.ref.name;
     // 건물 이름표 → 랜드마크 이름표 순서 (건물이 더 중요)
@@ -339,7 +377,16 @@
     });
     // 랜드마크
     items.forEach((it) => {
-      if (it.kind === "st") {
+      if (it.kind !== "b" && it.icon) {
+        if (it.anchor) {
+          const A = it.anchor, len = Math.hypot(it.x - A.x, it.y - A.y) || 1;
+          g.push('<g class="sk-lm ic ' + it.kind + '"><line class="sk-pin" x1="' + f1(A.x) + '" y1="' + f1(A.y) + '" x2="' +
+            f1(it.x - ((it.x - A.x) / len) * it.r) + '" y2="' + f1(it.y - ((it.y - A.y) / len) * it.r) + '"/><circle class="sk-pin-pt" cx="' +
+            f1(A.x) + '" cy="' + f1(A.y) + '" r="2.5"/></g>');
+        }
+        g.push('<g class="sk-lm ic ' + it.kind + '" data-lm="' + esc(it.ref.id) + '"><circle class="sk-mask" cx="' + f1(it.x) + '" cy="' + f1(it.y) +
+          '" r="' + it.r + '"/>' + iconMarkup(it.icon, it.x, it.y, it.r) + "</g>");
+      } else if (it.kind === "st") {
         g.push('<g class="sk-lm st" data-lm="' + esc(it.ref.id) + '"><rect x="' + f1(it.x - 7) + '" y="' + f1(it.y - 7) +
           '" width="14" height="14" rx="3.5"/><text x="' + f1(it.x) + '" y="' + f1(it.y + 0.5) + '">역</text></g>');
       } else if (it.kind === "sg") {
@@ -350,6 +397,19 @@
     // 건물 점 (위치 불확실하면 점선 빈 점)
     items.filter((i) => i.kind === "b").forEach((it) => {
       const b = it.ref;
+      if (it.icon) {
+        // 아이콘 + (이름표 맨 앞) 번호 배지. 둘 다 같은 묶음이라 방문 완료 색이 함께 바뀌고, 어느 쪽을 눌러도 카드로 갑니다.
+        const r = it.label.rect, bx = r.x + 3 + BADGE_R, by = r.y + 1 + FS / 2 + 1.5;
+        g.push('<g class="sk-b ic' + (it.sure ? "" : " unsure") + '" data-sk="' + esc(b.id) + '">' +
+          '<circle class="sk-hit" cx="' + f1(it.x) + '" cy="' + f1(it.y) + '" r="22"/>' +
+          '<rect class="sk-hit" x="' + f1(r.x - 4) + '" y="' + f1(r.y - 8) + '" width="' + f1(r.w + 8) + '" height="' + f1(r.h + 16) + '"/>' +
+          '<circle class="sk-mask" cx="' + f1(it.x) + '" cy="' + f1(it.y) + '" r="' + it.r + '"/>' +
+          (it.sure ? "" : '<circle class="sk-ring" cx="' + f1(it.x) + '" cy="' + f1(it.y) + '" r="' + (it.r + 4) + '"/>') +
+          iconMarkup(it.icon, it.x, it.y, it.r) +
+          '<circle class="sk-dot" cx="' + f1(bx) + '" cy="' + f1(by) + '" r="' + BADGE_R + '"/>' +
+          '<text class="sk-n" x="' + f1(bx) + '" y="' + f1(by + 0.5) + '">' + b.num + "</text></g>");
+        return;
+      }
       g.push('<g class="sk-b' + (it.sure ? "" : " unsure") + '" data-sk="' + esc(b.id) + '">' +
         '<circle class="sk-hit" cx="' + f1(it.x) + '" cy="' + f1(it.y) + '" r="22"/>' +
         (it.sure ? "" : '<circle class="sk-ring" cx="' + f1(it.x) + '" cy="' + f1(it.y) + '" r="16"/>') +
@@ -360,7 +420,9 @@
     items.forEach((it) => {
       const L = it.label;
       const cls = it.kind === "b" ? "sk-t" : "sk-t lm";
-      const ax = L.anchor === "start" ? L.rect.x + 3 : L.anchor === "end" ? L.rect.x + L.rect.w - 3 : L.rect.x + L.rect.w / 2;
+      if (L.badge) L.anchor = "start";   // 번호 배지가 있으면 [배지][이름] 순서로 왼쪽부터
+      const ax = L.badge ? L.rect.x + 3 + L.badge
+        : L.anchor === "start" ? L.rect.x + 3 : L.anchor === "end" ? L.rect.x + L.rect.w - 3 : L.rect.x + L.rect.w / 2;
       let y = L.rect.y + 1;
       const parts = L.lines.map((t, i) => {
         y += L.fsList[i];
