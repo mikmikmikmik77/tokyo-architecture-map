@@ -255,6 +255,25 @@
       items.push({ kind, ref: l, x: p.x, y: p.y, r: l.icon ? R_ICON[kind] : 8, icon: l.icon || null });
     });
 
+    // 1-1) 건물 아이콘끼리 겹칠 때: 크기는 그대로 두고 서로 반대쪽으로 겹치지 않을 만큼만 비켜 놓습니다.
+    //      (약도라 몇 px 차이는 괜찮다고 봄) 실제 위치에는 작은 점과 선을 남기고, 도보 시간은 실제 좌표로 계산합니다.
+    const bIcons = items.filter((i) => i.kind === "b" && i.icon);
+    for (let pass = 0; pass < 6; pass++) {
+      let moved = false;
+      for (let i = 0; i < bIcons.length; i++) {
+        for (let j = i + 1; j < bIcons.length; j++) {
+          const a = bIcons[i], b = bIcons[j];
+          const need = a.r + b.r + 2, dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
+          if (d >= need) continue;
+          const ux = d ? dx / d : 1, uy = d ? dy / d : 0, push = (need - d) / 2;
+          [a, b].forEach((o) => { if (!o.anchor) o.anchor = { x: o.x, y: o.y }; });
+          a.x -= ux * push; a.y -= uy * push; b.x += ux * push; b.y += uy * push;
+          moved = true;
+        }
+      }
+      if (!moved) break;
+    }
+
     // 2) 가까운 건물 잇기
     const sure = blds.filter(isSure), unsure = blds.filter((b) => !isSure(b));
     const sureItems = items.filter((i) => i.kind === "b" && i.sure);
@@ -403,6 +422,8 @@
         g.push('<g class="sk-b ic' + (it.sure ? "" : " unsure") + '" data-sk="' + esc(b.id) + '">' +
           '<circle class="sk-hit" cx="' + f1(it.x) + '" cy="' + f1(it.y) + '" r="22"/>' +
           '<rect class="sk-hit" x="' + f1(r.x - 4) + '" y="' + f1(r.y - 8) + '" width="' + f1(r.w + 8) + '" height="' + f1(r.h + 16) + '"/>' +
+          (it.anchor ? '<line class="sk-pin" x1="' + f1(it.anchor.x) + '" y1="' + f1(it.anchor.y) + '" x2="' + f1(it.x) + '" y2="' + f1(it.y) +
+            '"/><circle class="sk-pin-pt" cx="' + f1(it.anchor.x) + '" cy="' + f1(it.anchor.y) + '" r="2.5"/>' : "") +
           '<circle class="sk-mask" cx="' + f1(it.x) + '" cy="' + f1(it.y) + '" r="' + it.r + '"/>' +
           (it.sure ? "" : '<circle class="sk-ring" cx="' + f1(it.x) + '" cy="' + f1(it.y) + '" r="' + (it.r + 4) + '"/>') +
           iconMarkup(it.icon, it.x, it.y, it.r) +
