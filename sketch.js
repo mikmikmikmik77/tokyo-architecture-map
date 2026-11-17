@@ -289,6 +289,29 @@
       return { e, seg, A, B, near: e.min <= CLOSE_MIN, mx: (A.x + B.x) / 2, my: (A.y + B.y) / 2, ux, uy, len };
     });
 
+    // 2-0) 위치가 불확실한 건물의 번호 점(점선 원 포함)이 건물 아이콘이나 그 번호 배지와 겹칠 때:
+    //      아이콘은 제자리에 두고 번호 점만 비켜 놓습니다. 실제(추정) 위치에는 작은 점과 선을 남깁니다.
+    const UNSURE_R = 17;   // 번호 점(11) + 점선 원(16) 바깥까지
+    const iconHit = (o, x, y, r) => Math.hypot(o.x - x, o.y - y) < o.r + r + 2 ||
+      Math.hypot(o.x + o.r * BADGE_AT - x, o.y - o.r * BADGE_AT - y) < BADGE_R + r + 1;
+    items.filter((i) => i.kind === "b" && !i.icon && !i.sure).forEach((it) => {
+      const others = items.filter((o) => o.kind === "b" && o !== it);
+      const hits = (x, y) => others.some((o) => o.icon ? iconHit(o, x, y, UNSURE_R) : Math.hypot(o.x - x, o.y - y) < o.r + UNSURE_R + 2);
+      if (!items.some((o) => o.kind === "b" && o.icon && iconHit(o, it.x, it.y, UNSURE_R))) return;
+      const box = (x, y) => ({ x: x - UNSURE_R, y: y - UNSURE_R, w: 2 * UNSURE_R, h: 2 * UNSURE_R });
+      let best = null;
+      for (let d = 6; d <= 80 && !best; d += 4) {
+        for (let k = 0; k < 16; k++) {
+          const a = (k * Math.PI) / 8, x = it.x + d * Math.cos(a), y = it.y + d * Math.sin(a);
+          if (x < UNSURE_R + 6 || x > W - UNSURE_R - 6 || y < UNSURE_R + 6 || y > H - UNSURE_R - 6) continue;
+          if (hits(x, y) || segs.some((sg) => segHitsRect(sg, box(x, y)))) continue;
+          const far = Math.min(...others.map((o) => Math.hypot(o.x - x, o.y - y)));
+          if (!best || far > best.far) best = { x, y, far };
+        }
+      }
+      if (best) { it.anchor = { x: it.x, y: it.y }; it.x = best.x; it.y = best.y; }
+    });
+
     // 2-1) 아이콘끼리 겹칠 때: 건물은 제 좌표에 그대로 두고, 역·명소 아이콘만 옆으로 살짝 비켜 놓습니다.
     //      실제 위치에는 작은 점을 찍고 아이콘까지 가는 선을 그어, 위치 정보는 그대로 남깁니다.
     const placed = items.filter((i) => i.kind === "b");
@@ -435,6 +458,8 @@
       }
       g.push('<g class="sk-b' + (it.sure ? "" : " unsure") + '" data-sk="' + esc(b.id) + '">' +
         '<circle class="sk-hit" cx="' + f1(it.x) + '" cy="' + f1(it.y) + '" r="22"/>' +
+        (it.anchor ? '<line class="sk-pin" x1="' + f1(it.anchor.x) + '" y1="' + f1(it.anchor.y) + '" x2="' + f1(it.x) + '" y2="' + f1(it.y) +
+          '"/><circle class="sk-pin-pt" cx="' + f1(it.anchor.x) + '" cy="' + f1(it.anchor.y) + '" r="2.5"/>' : "") +
         (it.sure ? "" : '<circle class="sk-ring" cx="' + f1(it.x) + '" cy="' + f1(it.y) + '" r="16"/>') +
         '<circle class="sk-dot" cx="' + f1(it.x) + '" cy="' + f1(it.y) + '" r="11"/>' +
         '<text class="sk-n" x="' + f1(it.x) + '" y="' + f1(it.y + 0.5) + '">' + b.num + "</text></g>");
