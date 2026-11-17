@@ -106,8 +106,6 @@
       sphere: '<path d="M1.500 22V2h4v20z M18.500 22V2h4v20z M5.500 2h13v2.200h-13z M5.500 17.500h13v2.400h-13z" '+F+'/><circle cx="12" cy="10.300" r="3.700" '+F+'/>',
       // 팀랩 플래닛: 빛 알갱이가 매달린 줄과 거울 바닥
       strands: '<path d="M2 2.500h20" '+S+'/><path d="M4.500 6v8M9.500 6v12M14.500 6v5M19.500 6v9" fill="none" stroke="currentColor" stroke-width="2.800" stroke-linecap="round" stroke-dasharray="0 3.300"/><path d="M2 21.500h20" '+S+'/>',
-      // 유니콘 건담(명소): 뿔 하나 달린 거대 로봇 — 저장소에 사진이 없어 기억으로 그림
-      robot: '<path d="M12 .800l1 3.600h-2z M10 4.400h4v3h-4z M6 8h12l-1.200 6.200H7.200z M3.300 8.500h2.200v7.300H3.300z M18.500 8.500h2.200v7.300h-2.200z M7.500 14.800h3.700v7.700H6.800z M12.800 14.800h3.700l.700 7.700h-4.400z" '+F+'/>',
       // 역(공통): 앱의 '대중교통' 버튼과 같은 기차
       train: '<rect x="5" y="3" width="14" height="14" rx="3" ' + S + '/><path d="M5 10.500h14M8 21l2-4M16 21l-2-4" ' + S + '/><circle cx="8.700" cy="13.800" r="1.200" fill="currentColor"/><circle cx="15.300" cy="13.800" r="1.200" fill="currentColor"/>'
     },
@@ -146,7 +144,7 @@
       daikanyama_sta: "train", ebisu_sta: "train",
       // 도요스 · 오다이바
       b37: "sphere", b38: "strands",
-      gundam: "robot", toyosu_sta: "train", odaiba_kaihinkoen_sta: "train"
+      toyosu_sta: "train", odaiba_kaihinkoen_sta: "train"
     },
     byType: {}
   };
