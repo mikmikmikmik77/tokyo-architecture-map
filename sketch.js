@@ -313,11 +313,13 @@
     });
 
     // 2-1) 아이콘끼리 겹칠 때: 건물은 제 좌표에 그대로 두고, 역·명소 아이콘만 옆으로 살짝 비켜 놓습니다.
-    //      실제 위치에는 작은 점을 찍고 아이콘까지 가는 선을 그어, 위치 정보는 그대로 남깁니다.
+    //      아이콘이 없는 명소 마름모·'역' 네모도 건물 아이콘(번호 배지 포함)과 겹치면 같은 방식으로 비켜 놓습니다.
+    //      실제 위치에는 작은 점을 찍고 표식까지 가는 선을 그어, 위치 정보는 그대로 남깁니다.
     const placed = items.filter((i) => i.kind === "b");
     items.filter((i) => i.kind !== "b").forEach((it) => {
       const hitsItem = (x, y) => placed.some((o) => Math.hypot(o.x - x, o.y - y) < o.r + it.r + 3);
-      if (it.icon && hitsItem(it.x, it.y)) {
+      const hitsIcon = !it.icon && placed.some((o) => o.kind === "b" && o.icon && iconHit(o, it.x, it.y, it.r));
+      if ((it.icon && hitsItem(it.x, it.y)) || hitsIcon) {
         const box = (x, y) => ({ x: x - it.r - 1, y: y - it.r - 1, w: 2 * it.r + 2, h: 2 * it.r + 2 });
         let best = null;
         for (let d = 6; d <= 80 && !best; d += 4) {
@@ -421,19 +423,21 @@
     });
     // 랜드마크
     items.forEach((it) => {
-      if (it.kind !== "b" && it.icon) {
-        if (it.anchor) {
-          const A = it.anchor, len = Math.hypot(it.x - A.x, it.y - A.y) || 1;
-          g.push('<g class="sk-lm ic ' + it.kind + '"><line class="sk-pin" x1="' + f1(A.x) + '" y1="' + f1(A.y) + '" x2="' +
-            f1(it.x - ((it.x - A.x) / len) * it.r) + '" y2="' + f1(it.y - ((it.y - A.y) / len) * it.r) + '"/><circle class="sk-pin-pt" cx="' +
-            f1(A.x) + '" cy="' + f1(A.y) + '" r="2.5"/></g>');
-        }
+      if (it.kind === "b") return;
+      // 비켜 놓은 표식: 실제 위치의 작은 점과 표식까지의 선
+      if (it.anchor) {
+        const A = it.anchor, len = Math.hypot(it.x - A.x, it.y - A.y) || 1;
+        g.push('<g class="sk-lm ic ' + it.kind + '"><line class="sk-pin" x1="' + f1(A.x) + '" y1="' + f1(A.y) + '" x2="' +
+          f1(it.x - ((it.x - A.x) / len) * it.r) + '" y2="' + f1(it.y - ((it.y - A.y) / len) * it.r) + '"/><circle class="sk-pin-pt" cx="' +
+          f1(A.x) + '" cy="' + f1(A.y) + '" r="2.5"/></g>');
+      }
+      if (it.icon) {
         g.push('<g class="sk-lm ic ' + it.kind + '" data-lm="' + esc(it.ref.id) + '"><circle class="sk-mask" cx="' + f1(it.x) + '" cy="' + f1(it.y) +
           '" r="' + it.r + '"/>' + iconMarkup(it.icon, it.x, it.y, it.r) + "</g>");
       } else if (it.kind === "st") {
         g.push('<g class="sk-lm st" data-lm="' + esc(it.ref.id) + '"><rect x="' + f1(it.x - 7) + '" y="' + f1(it.y - 7) +
           '" width="14" height="14" rx="3.5"/><text x="' + f1(it.x) + '" y="' + f1(it.y + 0.5) + '">역</text></g>');
-      } else if (it.kind === "sg") {
+      } else {
         g.push('<g class="sk-lm sg" data-lm="' + esc(it.ref.id) + '"><path d="M' + f1(it.x) + " " + f1(it.y - 8) + "L" + f1(it.x + 8) + " " + f1(it.y) +
           "L" + f1(it.x) + " " + f1(it.y + 8) + "L" + f1(it.x - 8) + " " + f1(it.y) + 'Z"/></g>');
       }
