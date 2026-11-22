@@ -472,3 +472,5 @@ body.view-map .tabs { padding-top: calc(8px + env(safe-area-inset-top)); }
 .card.flash { animation: sk-flash 1.4s ease-out; }
 @keyframes sk-flash { 0% { box-shadow: 0 0 0 4px var(--accent); } 100% { box-shadow: 0 0 0 4px transparent; } }
 @media (prefers-reduced-motion: reduce) { .card.flash { animation: none; outline: 3px solid var(--accent); } }
+.sk-loc { width: 100%; margin-top: 8px; }
+.sk-loc[hidden] { display: none; }

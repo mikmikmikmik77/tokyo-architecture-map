@@ -256,6 +256,9 @@
         '<div class="sk-wrap"><svg class="sk" viewBox="0 0 ' + L.W + " " + L.H + '" role="img" aria-label="' + esc(regionName) +
         ' 약도. 북쪽이 위이고 거리 비율은 실제와 같아요. 건물 ' + blds.length + '곳의 위치 관계를 보여줘요.">' +
         L.svg + '<g id="sk-me"></g></svg></div>' +
+        '<button type="button" class="btn ghost sk-loc" id="sk-loc" data-sk-loc>' +
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="currentColor"/><circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>' +
+        '약도에 내 위치 표시</button>' +
         '<ul class="sk-legend" aria-label="약도 기호">' +
         '<li><i class="lg b">1</i>건축물 <small>(카드 번호' + (anyBIcon ? " · 누르면 카드로" : "") + ')</small></li>' +
         (hasSt ? "<li>" + (lgSt || '<i class="lg st">역</i>') + "역</li>" : "") +
@@ -291,6 +294,27 @@
       const slot = $("sk-me");
       if (!slot || !sketchUI.shown) return;
       slot.innerHTML = state.pos ? Sketch.meMarkup(sketchUI.cache.get(sketchUI.shown).L, state.pos) : "";
+      const btn = $("sk-loc");
+      if (btn) btn.hidden = !!state.pos;
+    },
+    // 약도의 '내 위치 표시' 버튼: 위치를 한 번 받아 오면 그 뒤로는 움직일 때마다 약도가 따라갑니다.
+    async locate() {
+      const btn = $("sk-loc");
+      if (!btn || btn.dataset.busy) return;
+      btn.dataset.busy = "1";
+      toast("내 위치를 찾는 중…", 15000);
+      try {
+        await geo.request();
+        toast(sketchUI.inside() ? "약도에 내 위치(파란 점)를 표시했어요." : "지금은 이 권역 밖이라, 약도 가장자리에 방향과 거리를 적었어요.", 3200);
+      } catch (err) {
+        toast(geo.message(err).replace(" 기본 순서로 보여드릴게요.", ""), 4500);
+      } finally {
+        delete btn.dataset.busy;
+      }
+    },
+    inside() {
+      const slot = $("sk-me");
+      return !!(slot && slot.querySelector(".sk-me:not(.far)"));
     },
     // 약도의 번호 점을 누르면 그 건물의 카드로 이동
     tap(id) {
@@ -787,6 +811,7 @@
     });
     $("cards").addEventListener("click", onAction);
     $("sketch-body").addEventListener("click", (e) => {
+      if (e.target.closest("[data-sk-loc]")) return sketchUI.locate();
       const g = e.target.closest("[data-sk]");
       if (g) sketchUI.tap(g.dataset.sk);
     });
@@ -828,14 +853,14 @@
 
   /* ───────── 시작 ───────── */
   async function restoreNear() {
-    // 지난번에 '가까운 순'을 켜 뒀고 위치 권한이 이미 허용돼 있을 때만 조용히 다시 켭니다.
-    // (앱을 열자마자 권한 창이 뜨지 않게)
-    if (!store.get("sortNear", false)) return;
+    // 위치 권한이 이미 허용돼 있으면 조용히 위치를 받아 와 약도·지도에 내 위치를 보여줍니다.
+    // 지난번에 '가까운 순'을 켜 뒀다면 그것도 다시 켭니다. (허용 전이면 앱을 열자마자 권한 창이 뜨지 않게 아무것도 안 함)
     try {
       if (!navigator.permissions) return;
       const st = await navigator.permissions.query({ name: "geolocation" });
       if (st.state !== "granted") return;
       await geo.request();
+      if (!store.get("sortNear", false)) return;
       state.sortNear = true;
       applyOrder(); applyFilters();
     } catch (e) { /* 기본 순서 유지 */ }
