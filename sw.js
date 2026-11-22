@@ -1,6 +1,6 @@
 // 서비스 워커: 앱 화면(목록·데이터)을 폰에 저장해 두어 오프라인에서도 열리게 합니다.
 // 파일을 고쳐서 다시 올릴 때는 아래 버전 숫자를 하나 올려 주세요.
-const VERSION = "v16";
+const VERSION = "v17";
 const CACHE = "tokyo-arch-" + VERSION;
 const SHELL = [
   "./",
@@ -56,7 +56,9 @@ self.addEventListener("fetch", (e) => {
     const cache = await caches.open(CACHE);
     const cached = (await cache.match(req, { ignoreSearch: true })) ||
       (req.mode === "navigate" ? await cache.match("index.html") : undefined);
-    const fresh = fetch(req).then((res) => {
+    // cache: "no-cache" — 브라우저의 HTTP 캐시(GitHub Pages는 10분)를 건너뛰고 서버에 '바뀌었나' 물어봅니다.
+    // 안 바뀌었으면 서버가 짧은 304 답만 주므로 데이터를 거의 안 씁니다. 덕분에 새로 올린 파일이 바로 보입니다.
+    const fresh = fetch(req.url, { cache: "no-cache", credentials: "same-origin" }).then((res) => {
       if (res && res.ok && res.type === "basic") cache.put(req, res.clone());
       return res;
     });
